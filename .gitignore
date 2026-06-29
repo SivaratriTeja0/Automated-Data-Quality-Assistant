@@ -1,0 +1,26 @@
+# Virtual Environment
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# Streamlit
+.streamlit/
+
+# Generated Project Files
+cleaned_data/*
+reports/*
+uploads/*
+
+# Keep folder structure
+!cleaned_data/.gitkeep
+!reports/.gitkeep
+!uploads/.gitkeep
+
+# VS Code
+.vscode/
+
+# OS Files
+.DS_Store
+Thumbs.db
