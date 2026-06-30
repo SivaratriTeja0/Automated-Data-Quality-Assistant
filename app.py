@@ -1,98 +1,108 @@
 import streamlit as st
-import pandas as pd
-from pathlib import Path
 
-# -------------------------------
-# Page Configuration
-# -------------------------------
+from modules.loader import load_file
+
+from modules.dashboard import (
+    show_summary,
+    show_preview,
+    show_columns,
+    show_datatypes,
+    show_missing
+)
+
+# ==========================================================
+# PAGE CONFIG
+# ==========================================================
+
 st.set_page_config(
     page_title="Data Quality Assistant",
     page_icon="📊",
     layout="wide"
 )
 
-# -------------------------------
-# Hero Section
-# -------------------------------
+# ==========================================================
+# HEADER
+# ==========================================================
+
 st.title("📊 Data Quality Assistant")
 
-st.subheader("Make Your Data Clean, Reliable & Ready to Use")
+st.subheader("Upload. Analyze. Clean. Trust Your Data.")
 
 st.write("""
 Welcome!
 
-We help you identify and fix data quality issues in Excel and CSV files.
-
-No coding required.
-No technical knowledge required.
-
-Simply upload your file and we'll guide you through the cleaning process.
+Upload your CSV or Excel dataset and let Data Quality Assistant
+analyze its quality before you start your analysis.
 """)
 
 st.divider()
+
+# ==========================================================
+# FEATURES
+# ==========================================================
 
 st.header("Why Use This Tool?")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    st.success("✔ Detect missing information")
-    st.success("✔ Find duplicate records")
-    st.success("✔ Standardize text")
+    st.success("✔ Detect Missing Values")
+    st.success("✔ Find Duplicate Records")
+    st.success("✔ Validate Data Types")
 
 with col2:
-    st.success("✔ Identify incorrect data types")
-    st.success("✔ Detect unusual values")
-    st.success("✔ Download cleaned data")
+    st.success("✔ Detect Outliers")
+    st.success("✔ Generate Reports")
+    st.success("✔ Download Cleaned Data")
 
 st.divider()
 
-# -------------------------------
-# File Upload
-# -------------------------------
+# ==========================================================
+# FILE UPLOAD
+# ==========================================================
+
 uploaded_file = st.file_uploader(
-    "Upload your CSV or Excel file",
+    "📂 Upload CSV or Excel File",
     type=["csv", "xlsx"]
 )
 
-# -------------------------------
-# Read Uploaded File
-# -------------------------------
+# ==========================================================
+# MAIN APPLICATION
+# ==========================================================
+
 if uploaded_file is not None:
 
     try:
-        # Get filename and extension
-        filename = uploaded_file.name
-        extension = Path(filename).suffix.lower()
 
-        # Read file based on extension
-        if extension == ".csv":
-            df = pd.read_csv(uploaded_file)
+        df, filename, extension = load_file(uploaded_file)
 
-        elif extension == ".xlsx":
-            df = pd.read_excel(uploaded_file)
+        st.success(f"✅ {filename} uploaded successfully!")
 
-        else:
-            st.error("❌ Unsupported file type.")
-            st.stop()
+        show_summary(df)
 
-        # Success Message
-        st.success(f"✅ '{filename}' uploaded successfully!")
+        st.divider()
 
-        # Dataset Information
-        st.subheader("📋 Dataset Summary")
+        tab1, tab2, tab3, tab4 = st.tabs([
+            "👀 Preview",
+            "📝 Columns",
+            "📌 Data Types",
+            "⚠ Missing Values"
+        ])
 
-        col1, col2 = st.columns(2)
+        with tab1:
+            show_preview(df)
 
-        with col1:
-            st.metric("Rows", df.shape[0])
+        with tab2:
+            show_columns(df)
 
-        with col2:
-            st.metric("Columns", df.shape[1])
+        with tab3:
+            show_datatypes(df)
 
-        st.write("### 👀 Dataset Preview")
-        st.dataframe(df.head(10), use_container_width=True)
+        with tab4:
+            show_missing(df)
 
     except Exception as e:
-        st.error("❌ Unable to read the uploaded file.")
-        st.error(f"Error: {e}")
+
+        st.error("❌ Unable to read uploaded file.")
+
+        st.error(e)
