@@ -15,6 +15,8 @@ from modules.quality import (
     calculate_health_score
 )
 
+from modules.profiling import show_profiling
+
 # ==========================================================
 # PAGE CONFIGURATION
 # ==========================================================
@@ -122,11 +124,6 @@ if uploaded_file is not None:
 
         st.success(f"✅ {filename} uploaded successfully!")
 
-        # -----------------------------------------
-        # Dashboard
-        # -----------------------------------------
-
-        show_summary(df)
 
         # -----------------------------------------
         # Quality Analysis
@@ -145,11 +142,12 @@ if uploaded_file is not None:
         # Tabs
         # -----------------------------------------
 
-        tab1, tab2, tab3 = st.tabs([
-            "👀 Preview",
-            "📊 Dashboard",
-            "🔍 Quality Report"
-        ])
+        tab1, tab2, tab3, tab4 = st.tabs([
+    "👀 Preview",
+    "📊 Dashboard",
+    "📈 Data Profiling",
+    "🔍 Quality Report"
+])
 
         # =========================================
         # PREVIEW TAB
@@ -165,6 +163,15 @@ if uploaded_file is not None:
 
         with tab2:
 
+            show_summary(
+                df,
+                missing_analysis,
+                duplicate_analysis,
+                health_analysis
+            )
+
+            st.divider()
+
             show_columns(df)
 
             st.divider()
@@ -172,10 +179,18 @@ if uploaded_file is not None:
             show_datatypes(df)
 
         # =========================================
-        # QUALITY REPORT TAB
+        # DATA PROFILING TAB
         # =========================================
 
         with tab3:
+
+            show_profiling(df)
+
+        # =========================================
+        # QUALITY REPORT TAB
+        # =========================================
+
+        with tab4:
 
             st.subheader("📊 Dataset Health")
 
@@ -249,6 +264,11 @@ if uploaded_file is not None:
                 missing_df["Missing Values"] > 0
             ]
 
+            missing_df = missing_df.sort_values(
+                by="Missing Values",
+                ascending=False
+            )
+
             if missing_df.empty:
 
                 st.success("✅ No Missing Values Found")
@@ -257,18 +277,10 @@ if uploaded_file is not None:
 
                 st.dataframe(
                     missing_df,
+                    hide_index=True,
                     use_container_width=True
                 )
 
-            st.info("""
-💡 Recommendation
-
-Review the affected columns before performing
-analysis or building dashboards.
-
-Missing values can lead to incorrect business
-insights and inaccurate machine learning models.
-""")
 
             if duplicate_analysis["duplicate_count"] == 0:
 
@@ -279,6 +291,15 @@ insights and inaccurate machine learning models.
                 st.warning(
                     f"⚠ {duplicate_analysis['duplicate_count']} duplicate rows detected."
                 )
+            st.info("""
+💡 Recommendation
+
+Review the affected columns before performing
+analysis or building dashboards.
+
+Missing values can lead to incorrect business
+insights and inaccurate machine learning models.
+""")
 
     except Exception as e:
 
